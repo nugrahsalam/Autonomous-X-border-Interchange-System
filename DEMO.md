@@ -180,6 +180,78 @@ curl -s "https://your-axis-url/api/axis/transactions?limit=5" | jq '.transaction
 
 ---
 
+## ElevenLabs TTS Script
+
+Copy teks di bawah ini langsung ke ElevenLabs. Tanda koma dan titik sudah disesuaikan untuk jeda alami sesuai timing video.
+
+---
+
+### [0:00 – 0:20] Hook
+
+"AI agents need to swap assets, settle payments, and move liquidity, autonomously, without any human in the loop. But who handles the routing, the payment gating, and the on-chain settlement? Until now, that was a human's job. Meet AXIS."
+
+---
+
+### [0:20 – 0:50] Architecture
+
+"AXIS is an open liquidity A P I, built for AI agents, on Stellar Testnet. Any external agent can send X L M to AXIS, using M P P, the Machine Payments Protocol, and receive any target asset, directly in their wallet. No custodian. No whitelist. No API key. Just pay the fee, and the swap happens, fully on-chain."
+
+"Every request starts with a quote. The agent learns exactly how much X L M is needed, including the service fee. That total becomes the M P P charge amount. AXIS then executes a Path Payment Strict Receive on Stellar, routing through A M M pools, and delivers the destination asset, straight to the agent's address."
+
+---
+
+### [0:50 – 1:00] Demo Start
+
+"Let's watch the full eight-step flow, live. Source asset: X L M. Destination: C A T token. Amount: zero point five. The Demo Agent is fully autonomous. No human input after this click."
+
+---
+
+### [1:00 – 1:12] Step BALANCE + SCAN
+
+"Step one. AXIS checks the Demo Agent's balance, and confirms there is enough X L M to proceed. Then it runs a two-pass A M M pool scan, to discover the best route from X L M to C A T."
+
+---
+
+### [1:12 – 1:28] Step THINK
+
+"Step two. Claude Haiku, the A I financial brain, analyzes this swap. It evaluates risk, slippage, and market conditions. It sets a dynamic fee. And it makes a decision: approved. You can see the full chain-of-thought reasoning, right here in the dashboard."
+
+---
+
+### [1:28 – 1:40] Step QUOTE
+
+"Step three. AXIS calculates the exact source amount needed for this Path Payment, and adds the A I-set service fee. The agent now knows the total X L M required. This is the M P P charge amount."
+
+---
+
+### [1:40 – 1:55] Step 402 + PAYMENT
+
+"Step four and five. The Demo Agent sends a P O S T request to AXIS. AXIS replies with H T T P four zero two, Payment Required, an M P P challenge. The agent builds a Soroban S A C transfer, signs it, and broadcasts it to Stellar Testnet. Watch the transaction hash appear. This is a real, on-chain payment."
+
+---
+
+### [1:55 – 2:10] Step SWAP + DONE
+
+"Step six and seven. AXIS verifies the payment on-chain. Confirms the agent's trustline for C A T. Then executes Path Payment Strict Receive, through the A M M pool. Stellar settles in five seconds. C A T arrives in the Demo Agent's wallet. Balance updated. Explorer link is live. Swap complete."
+
+---
+
+### [2:10 – 2:30] External Agent Integration
+
+"AXIS is not just a demo. It is an open A P I. Any A I agent can integrate in three steps. Get a quote. Set up an M P P X client to handle the four-zero-two automatically. Then call slash axis slash convert. That is it. The M P P X library handles the challenge, the payment, and the retry, without any extra code."
+
+"External agents bring their own funds. AXIS never holds custody. The treasury runs indefinitely, because every swap is self-funded by the agent making the request."
+
+---
+
+### [2:30 – 3:00] Closing
+
+"AXIS is open, modular, and always ready. Powered by M P P, Claude A I, and A M M pool discovery. Any agent, any asset pair, any time. This is the liquidity layer that Stellar agents have been waiting for."
+
+"AXIS: Autonomous X-border Interchange System. Built for the Stellar Agents Hackathon."
+
+---
+
 ## Stellar Explorer Links
 
 - AXIS Treasury: https://stellar.expert/explorer/testnet/account/GCXVRIXJGGPEBP76SVBEA2TGPPBJVZWU3Y2QIQH65GA7FFHTGIK4VHCD
