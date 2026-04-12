@@ -1,0 +1,589 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.2.0
+  description: API specification for AXIS — Autonomous X-border Interchange System
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: axis
+    description: AXIS Liquidity Node operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /axis/status:
+    get:
+      operationId: getAxisStatus
+      tags: [axis]
+      summary: Get AXIS node status
+      description: Returns current node status, statistics, and configuration
+      responses:
+        "200":
+          description: Node status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AxisStatus"
+
+  /axis/balance:
+    get:
+      operationId: getAxisBalance
+      tags: [axis]
+      summary: Get wallet balances
+      description: Returns real-time balances for AXIS Treasury and Demo Agent
+      responses:
+        "200":
+          description: Wallet balances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AxisBalance"
+
+  /axis/transactions:
+    get:
+      operationId: getAxisTransactions
+      tags: [axis]
+      summary: Get recent transactions
+      description: Returns the most recent swap transactions processed by AXIS
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+          description: Maximum number of transactions to return (max 50)
+      responses:
+        "200":
+          description: Recent transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+  /axis/convert:
+    post:
+      operationId: axisConvert
+      tags: [axis]
+      summary: Convert assets via PathPaymentStrictReceive
+      description: >
+        Request asset conversion from any Stellar asset to any other. Returns 402 (x402)
+        with X-Payment-Required header if fee not paid. After fee verification,
+        executes PathPaymentStrictReceive and delivers destAsset to the fee payer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConvertRequest"
+      responses:
+        "201":
+          description: Conversion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+        "402":
+          description: Payment required (x402) — fee must be paid before conversion
+          headers:
+            X-Payment-Required:
+              description: base64url-encoded x402 payment requirement JSON
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentRequired"
+        "500":
+          description: Conversion failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /axis/demo/trigger:
+    post:
+      operationId: axisDemoTrigger
+      tags: [axis]
+      summary: Trigger full demo flow
+      description: >
+        Executes the complete AXIS conversion flow server-side for demo purposes:
+        balance scan → x402 challenge → fee payment → PathPaymentStrictReceive.
+        Supports any source/destination asset pair.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoTriggerRequest"
+      responses:
+        "200":
+          description: Demo flow completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoTriggerResponse"
+        "500":
+          description: Demo flow failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoTriggerResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AxisStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        network:
+          type: string
+        axisAddress:
+          type: string
+        serviceFee:
+          type: string
+        feeAsset:
+          type: string
+        supportedConversions:
+          type: array
+          items:
+            type: object
+            properties:
+              from:
+                type: string
+              to:
+                type: string
+            required:
+              - from
+              - to
+        totalRevenue:
+          type: string
+        successCount:
+          type: number
+        failedCount:
+          type: number
+        upSince:
+          type: string
+      required:
+        - status
+        - network
+        - axisAddress
+        - serviceFee
+        - feeAsset
+        - supportedConversions
+        - totalRevenue
+        - successCount
+        - failedCount
+        - upSince
+
+    AssetBalance:
+      type: object
+      properties:
+        asset:
+          type: string
+          description: Asset code (e.g. "XLM", "USDC")
+        balance:
+          type: string
+        issuer:
+          type: string
+          description: Asset issuer address (empty for native XLM)
+      required:
+        - asset
+        - balance
+
+    WalletInfo:
+      type: object
+      properties:
+        address:
+          type: string
+        xlm:
+          type: string
+        usdc:
+          type: string
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetBalance"
+          description: All non-zero balances including XLM and all Stellar assets
+      required:
+        - address
+        - xlm
+        - usdc
+        - balances
+
+    AxisBalance:
+      type: object
+      properties:
+        axis:
+          $ref: "#/components/schemas/WalletInfo"
+        demoAgent:
+          $ref: "#/components/schemas/WalletInfo"
+      required:
+        - axis
+        - demoAgent
+
+    TransactionRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+        hash:
+          type: string
+        inputAmount:
+          type: string
+        inputAsset:
+          type: string
+        outputAmount:
+          type: string
+        outputAsset:
+          type: string
+        path:
+          type: array
+          items:
+            type: string
+        fee:
+          type: string
+        feeHash:
+          type: string
+        demoAgentAddress:
+          type: string
+        axisAddress:
+          type: string
+        status:
+          type: string
+          enum: [success, failed]
+        errorMessage:
+          type: string
+      required:
+        - id
+        - timestamp
+        - hash
+        - inputAmount
+        - inputAsset
+        - outputAmount
+        - outputAsset
+        - path
+        - fee
+        - feeHash
+        - demoAgentAddress
+        - axisAddress
+        - status
+
+    TransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionRecord"
+        count:
+          type: number
+      required:
+        - transactions
+        - count
+
+    ConvertRequest:
+      type: object
+      properties:
+        destAmount:
+          type: string
+          description: Amount of destination asset to receive.
+        destAsset:
+          type: string
+          description: >
+            Destination asset. Use "XLM" for native, or "CODE:ISSUER" for issued assets
+            (e.g. "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5").
+            Defaults to USDC on the configured network.
+        srcAsset:
+          type: string
+          description: >
+            Source asset AXIS pays FROM. Use "XLM" for native, or "CODE:ISSUER".
+            Defaults to XLM (native).
+      required:
+        - destAmount
+
+    ConversionDetail:
+      type: object
+      properties:
+        inputAmount:
+          type: string
+        inputAsset:
+          type: string
+        outputAmount:
+          type: string
+        outputAsset:
+          type: string
+        route:
+          type: string
+        fee:
+          type: string
+        feeHash:
+          type: string
+        hash:
+          type: string
+        explorerUrl:
+          type: string
+      required:
+        - inputAmount
+        - inputAsset
+        - outputAmount
+        - outputAsset
+        - route
+        - fee
+        - feeHash
+        - hash
+        - explorerUrl
+
+    ConvertResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        conversion:
+          $ref: "#/components/schemas/ConversionDetail"
+      required:
+        - success
+        - conversion
+
+    X402PaymentOption:
+      type: object
+      description: A single payment option in the x402 Payment Required response
+      properties:
+        scheme:
+          type: string
+          description: Payment scheme (e.g. "exact")
+        networkId:
+          type: string
+        maxAmountRequired:
+          type: string
+        resource:
+          type: string
+        description:
+          type: string
+        mimeType:
+          type: string
+        payTo:
+          type: string
+          description: Destination address for the fee payment
+        asset:
+          type: string
+          description: Asset to pay in (e.g. "native" for XLM)
+        extra:
+          type: object
+          additionalProperties: true
+          description: Additional data (includes nonce)
+      required:
+        - scheme
+        - networkId
+        - maxAmountRequired
+        - resource
+        - payTo
+        - asset
+
+    PaymentInstruction:
+      type: object
+      properties:
+        destination:
+          type: string
+        amount:
+          type: string
+        asset:
+          type: string
+        nonce:
+          type: string
+        instructions:
+          type: string
+      required:
+        - destination
+        - amount
+        - asset
+        - nonce
+        - instructions
+
+    PaymentRequired:
+      type: object
+      description: x402 Payment Required response body
+      properties:
+        x402Version:
+          type: number
+        error:
+          type: string
+        accepts:
+          type: array
+          items:
+            $ref: "#/components/schemas/X402PaymentOption"
+        payment:
+          $ref: "#/components/schemas/PaymentInstruction"
+          description: Legacy flat payment instruction (for convenience)
+      required:
+        - x402Version
+        - error
+        - accepts
+
+    DemoStep:
+      type: object
+      properties:
+        step:
+          type: string
+        status:
+          type: string
+        detail:
+          type: string
+      required:
+        - step
+        - status
+
+    DemoTriggerRequest:
+      type: object
+      properties:
+        destAmount:
+          type: string
+          description: Amount of destination asset to receive in demo
+        destAsset:
+          type: string
+          description: >
+            Destination asset code. Use "XLM" for native, or "CODE:ISSUER" for issued assets.
+            Defaults to USDC on configured network.
+        srcAsset:
+          type: string
+          description: >
+            Source asset for the swap. Defaults to XLM (native).
+
+    BrainDecision:
+      type: object
+      description: AI (Claude) financial decision made before the swap
+      properties:
+        thinkingLog:
+          type: array
+          items:
+            type: string
+          description: Step-by-step AI reasoning log
+        dynamicFee:
+          type: string
+          description: AI-determined service fee in XLM
+        feeReason:
+          type: string
+          description: Justification for the fee amount
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        pathRecommendation:
+          type: string
+          description: Recommended swap route
+        summary:
+          type: string
+          description: Executive summary of the AI decision
+      required:
+        - thinkingLog
+        - dynamicFee
+        - feeReason
+        - riskLevel
+        - pathRecommendation
+        - summary
+
+    DemoResult:
+      type: object
+      properties:
+        inputAmount:
+          type: string
+        inputAsset:
+          type: string
+        outputAmount:
+          type: string
+        outputAsset:
+          type: string
+        route:
+          type: string
+        fee:
+          type: string
+        feeHash:
+          type: string
+        swapHash:
+          type: string
+        explorerUrl:
+          type: string
+      required:
+        - inputAmount
+        - inputAsset
+        - outputAmount
+        - outputAsset
+        - route
+        - fee
+        - feeHash
+        - swapHash
+        - explorerUrl
+
+    RawRequest:
+      type: object
+      properties:
+        endpoint:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: object
+          additionalProperties: true
+      required:
+        - endpoint
+        - headers
+        - body
+
+    DemoTriggerResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/DemoStep"
+        brainDecision:
+          $ref: "#/components/schemas/BrainDecision"
+          description: AI (Claude) decision made before the swap
+        result:
+          $ref: "#/components/schemas/DemoResult"
+        rawRequest:
+          $ref: "#/components/schemas/RawRequest"
+        error:
+          type: string
+      required:
+        - success
+        - steps
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+      required:
+        - error

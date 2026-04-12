@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ShSRR_6u7iEhy77iSE9Ox"
+uri = "file://DEMO.md"
+type = "text"
+title = "AXIS — Demo Script Lengkap (Hackathon)"

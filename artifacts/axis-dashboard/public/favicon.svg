@@ -1,0 +1,16 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BEF8"/>
+      <stop offset="50%" stop-color="#7C6EF8"/>
+      <stop offset="100%" stop-color="#E040FB"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="#0a0a0f"/>
+  <!-- X shape: top-left to bottom-right stroke -->
+  <path d="M35 35 L145 145" stroke="url(#g1)" stroke-width="22" stroke-linecap="round"/>
+  <!-- X shape: top-right to bottom-left stroke -->
+  <path d="M145 35 L35 145" stroke="url(#g1)" stroke-width="22" stroke-linecap="round"/>
+  <!-- 4-point star -->
+  <path d="M138 42 L141 35 L144 42 L151 45 L144 48 L141 55 L138 48 L131 45 Z" fill="#E040FB" opacity="0.9"/>
+</svg>
